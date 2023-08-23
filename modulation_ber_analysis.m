@@ -1,22 +1,24 @@
 % Simulation parameters
-numBits = 10000;         % Number of bits to transmit
-SNRdB = 0:2:20;          % Range of SNR values in dB
-SNR = 10.^(SNRdB/10);    % SNR in linear scale
+numBits = 10000;         % Number of bits to transmit (change accordingly)
+SNRdB = 0:2:20;          % Range of SNR values in dB (change accordingly)
+SNR = 10.^(SNRdB/10);    % Convert SNR values from dB to linear scale
 modulationSchemes = {'BPSK', 'QPSK', '16-QAM'};
 numModulations = length(modulationSchemes);
 numSNR = length(SNR);
 
-% Initialize BER arrays
+% Initialize BER arrays to store results
 BER = zeros(numModulations, numSNR);
 
+% Iterate through each modulation scheme
 for modulationIndex = 1:numModulations
     modulation = modulationSchemes{modulationIndex};
     
+    % Iterate through each SNR value
     for snrIndex = 1:numSNR
-        % Generate random bits
+        % Generate random bits for transmission
         bits = randi([0 1], 1, numBits);
         
-        % Modulation
+        % Modulation process based on the selected scheme
         if strcmp(modulation, 'BPSK')
             modulatedSignal = 2 * bits - 1;
         elseif strcmp(modulation, 'QPSK')
@@ -30,27 +32,26 @@ for modulationIndex = 1:numModulations
             modulatedSignal = realPart + 1i * imagPart;
         end
         
-        % AWGN channel
+        % Introduce AWGN channel noise
         receivedSignal = awgn(modulatedSignal, SNRdB(snrIndex));
         
-        % Demodulation and calculate BER
+        % Demodulation and BER calculation
         if strcmp(modulation, 'BPSK')
             demodulatedBits = receivedSignal > 0;
         elseif strcmp(modulation, 'QPSK')
             demodulatedBits = [real(receivedSignal) > 0; imag(receivedSignal) > 0];
             demodulatedBits = demodulatedBits(:)';
         elseif strcmp(modulation, '16-QAM')
-            % Demodulation logic for 16-QAM (similar to previous corrected code)
-            % ...
+            % Add demodulation logic for 16-QAM here if needed
         end
         
-        % Calculate and store BER
+        % Calculate and store Bit Error Rate (BER)
         bitErrors = sum(bits ~= demodulatedBits);
         BER(modulationIndex, snrIndex) = bitErrors / numBits;
     end
 end
 
-% Plot BER curves
+% Plot BER curves for different modulation schemes
 figure;
 for modulationIndex = 1:numModulations
     semilogy(SNRdB, BER(modulationIndex, :), '-o', 'DisplayName', modulationSchemes{modulationIndex});
